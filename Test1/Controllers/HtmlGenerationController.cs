@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data.Entity;
 using Test1.Data;
+using Test1.Email;
+using Test1.Interface;
 using Test1.Models;
 
 [Route("api/[controller]")]
@@ -11,15 +13,18 @@ public class HtmlGenerationController : ControllerBase
 
 	private readonly AppDbContext _context;
 
+	private readonly IEmailSender _emailSender;
+
 	private Dictionary<string, string> htmlContentDictionary = new Dictionary<string, string>();
 
-	public HtmlGenerationController(AppDbContext context)
+	public HtmlGenerationController(AppDbContext context, IEmailSender emailSender)
 	{
 		_context = context;
+		_emailSender = emailSender;
 	}
 
 	[HttpGet("html/{name}")]
-	public IActionResult GetHtml(string name)
+	public async Task<IActionResult> GetHtmlAsync(string name)
 	{
 		// Check if the provided uniqueId (name) exists in the User table
 		var user = _context.User.FirstOrDefault(u => u.Name == name);
@@ -105,6 +110,11 @@ public class HtmlGenerationController : ControllerBase
 
 		// User found in the database, fetch the generatedHtml data
 		string generatedHtml = user.GeneratedHTML;
+
+        var msg = "Your view count for " + user.Name + " is " + user.ViewersCount + ". " + System.Environment.NewLine + System.Environment.NewLine + "CodeCraftCrew";
+
+		// email test
+		await _emailSender.SendEmailAsync(user.Email, "View Count", msg);
 
 		// Return the fetched HTML content in the API response
 		return Content(generatedHtml, "text/html");

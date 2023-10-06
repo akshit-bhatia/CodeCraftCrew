@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore.SqlServer;
 
 using Test1.Data;
 using Microsoft.OpenApi.Models;
+using Test1.Interface;
+using Test1.Email;
 
 namespace Test1
 {
@@ -32,6 +34,8 @@ namespace Test1
 			{
 				c.SwaggerDoc("v1", new OpenApiInfo { Title = "CodeCraftCrew API", Version = "v0.2", Description = "University of Windsor, Business 6, Group 9" });
 			});
+
+			services.AddTransient<IEmailSender, EmailSender>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
