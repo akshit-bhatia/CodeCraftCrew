@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Data.Entity;
+using System.Net;
+using Test1;
 using Test1.Data;
-using Test1.Email;
 using Test1.Interface;
 using Test1.Models;
 
@@ -11,145 +10,75 @@ using Test1.Models;
 public class HtmlGenerationController : ControllerBase
 {
 
-	private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
+    private readonly IEmailSender _emailSender;
 
-	private readonly IEmailSender _emailSender;
+    private Dictionary<string, string> htmlContentDictionary = new Dictionary<string, string>();
 
-	private Dictionary<string, string> htmlContentDictionary = new Dictionary<string, string>();
+    public HtmlGenerationController(AppDbContext context, IEmailSender emailSender)
+    {
+        _context = context;
+        _emailSender = emailSender;
+        ScheduledJobs sj = new ScheduledJobs(context, emailSender);
+        sj.Scheduler();
+    }
 
-	public HtmlGenerationController(AppDbContext context, IEmailSender emailSender)
-	{
-		_context = context;
-		_emailSender = emailSender;
-	}
+    [HttpGet("html/{name}")]
+    public async Task<IActionResult> GetHtmlAsync(string name)
+    {
+        // Check if the provided uniqueId (name) exists in the User table
+        var user = _context.User.FirstOrDefault(u => u.Name == name);
 
-	[HttpGet("html/{name}")]
-	public async Task<IActionResult> GetHtmlAsync(string name)
-	{
-		// Check if the provided uniqueId (name) exists in the User table
-		var user = _context.User.FirstOrDefault(u => u.Name == name);
+        if (user == null)
+        {
+            // User not found in the database, return an error HTML page
 
-		if (user == null)
-		{
-			// User not found in the database, return an error HTML page
-			string errorHtml = $@"
-<!DOCTYPE html>
-<html lang=""en-us"" prefix=""content: http://purl.org/rss/1.0/modules/content/ dc: http://purl.org/dc/terms/ foaf: http://xmlns.com/foaf/0.1/ og: http://ogp.me/ns# rdfs: http://www.w3.org/2000/01/rdf-schema# sioc: http://rdfs.org/sioc/ns# sioct: http://rdfs.org/sioc/types# skos: http://www.w3.org/2004/02/skos/core# xsd: http://www.w3.org/2001/XMLSchema#"">
+            return BadRequest("Event not found in our database.!!!");
+        }
 
-<head>
-    <meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8"">
-    <style type=""text/css"">
-        @charset ""UTF-8"";
-        [ng\:cloak],
-        [ng-cloak],
-        [data-ng-cloak],
-        [x-ng-cloak],
-        .ng-cloak,
-        .x-ng-cloak,
-        .ng-hide:not(.ng-hide-animate) {{
-            display: none !important;
-        }}
+        // Updating the viewers count by 1
+        if (user.ViewersCount == null)
+            user.ViewersCount = 1;
+        else
+            user.ViewersCount = user.ViewersCount + 1;
 
-        ng\:form {{
-            display: block;
-        }}
+        // saving changes to db
+        _context.SaveChanges();
 
-        .ng-animate-shim {{
-            visibility: hidden;
-        }}
+        // User found in the database, fetch the generatedHtml data
+        string generatedHtml = user.GeneratedHTML.Replace("#asd#dsa#", user.ImageURL);
 
-        .ng-anchor {{
-            position: absolute;
-        }}
-    </style>
-    <meta http-equiv=""X-UA-Compatible"" content=""IE=edge"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
-    <title>Oops, something lost</title>
-    <meta name=""description"" content=""Oops, looks like the page is lost. Start your website on the cheap."">
-    <link media=""all"" rel=""stylesheet"" href=""/htdocs_error/style.css"">
-    <link rel=""stylesheet"" href=""https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"">
-    <link href=""https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i"" rel=""stylesheet"">
-
-    <script>
-        (function(i,s,o,g,r,a,m){{i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){{
-                (i[r].q=i[r].q||[]).push(arguments)}},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-        }})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-        ga('create', 'UA-26575989-46', 'auto');
-        ga('send', 'pageview');
-
-    </script>
-</head>
-
-<body>
-
-    <div class=""error"" id=""error"">
-            <div class=""container"">
-                <div class=""content centered""><img style=""width:500px;"" src=""https://conferencecaptioning.com/htdocs_error/something-lost.png"">
-                    <h1>Oops, looks like the page is lost.</h1>
-                    <p style=""font-size:22px;"" class=""sub-header text-block-narrow"">This is not a fault, just an accident that was not intentional.</p>
-                </div>
-        </div>
-</body>
-
-</html>
-";
-
-			return Content(errorHtml, "text/html");
-		}
-
-		// Updating the viewers count by 1
-		if (user.ViewersCount == null)
-			user.ViewersCount = 1;
-		else
-			user.ViewersCount = user.ViewersCount + 1;
-		
-		// saving changes to db
-		_context.SaveChanges();
-
-		// User found in the database, fetch the generatedHtml data
-		string generatedHtml = user.GeneratedHTML;
-
-        var msg = "Your view count for " + user.Name + " is " + user.ViewersCount + ". " + System.Environment.NewLine + System.Environment.NewLine + "CodeCraftCrew";
+		//var msg = "Your view count for " + user.Name + " is " + user.ViewersCount + ". " + System.Environment.NewLine + System.Environment.NewLine + "CodeCraftCrew";
 
 		// email test
-		await _emailSender.SendEmailAsync(user.Email, "View Count", msg);
+		//await _emailSender.SendEmailAsync(user.Email, "View Count", msg);
 
 		// Return the fetched HTML content in the API response
 		return Content(generatedHtml, "text/html");
-	}
+    }
 
 
-	[HttpPost]
-	public IActionResult GenerateHtml([FromBody] HtmlGenerationRequest request)
-	{
-		
-		// Generate a unique identifier for the HTML page (e.g., a random string or a unique ID)
-		//string uniqueId = Guid.NewGuid().ToString();
+    [HttpPost]
+    public IActionResult GenerateHtml([FromBody] HtmlGenerationRequest request)
+    {
 
-		// Check if the provided uniqueId exists in the database
-		var link = _context.User.FirstOrDefault(l => l.Name == request.Name);
+        // Generate a unique identifier for the HTML page (e.g., a random string or a unique ID)
+        //string uniqueId = Guid.NewGuid().ToString();
 
-		if (link != null)
-		{
+        // Check if the provided uniqueId exists in the database
+        var link = _context.User.FirstOrDefault(l => l.Name == request.Name);
+
+        if (link != null)
+        {
 			// If the uniqueId already exists, return an error indicating it's a duplicate
-			string errorHtml = $@"
-<html>
-<body>
-<h1>Error: Duplicate Link</h1>
-<p>The provided uniqueId already exists in the database.</p>
-</body>
-</html>
-        ";
-
-			return Content(errorHtml, "text/html");
-		}
+			string errorMessage = "Event name already Exists!!";
+            return BadRequest(errorMessage);
+        }
 
 
 
-		// Generate HTML content dynamically based on the input data
-		string htmlContent = $@"<!DOCTYPE html>
+        // Generate HTML content dynamically based on the input data
+        string htmlContent = $@"<!DOCTYPE html>
 <html lang=""en"" >
 <head>
   <meta charset=""utf-8"">
@@ -340,9 +269,9 @@ a.active {{
   <!-- partial:index.partial.html -->
   <div id=""header"" class=""customPadding"" style=""justify-content: center;"">
     <!-- <div style=""display:flex""> -->
-      <img style=""height:40px; width:150px; justify-content: center;"" src=""https://www.conferencecaptioning.com/images/logo-light.png""> 
-      <img style=""height:24px; width:24px; justify-content: center;"" src=""https://www.conferencecaptioning.com/wetech/images/x.png"">
-      <img style=""height: 43.3px; width:122px; justify-content: center;"" src=""{request.ImageURL}"">
+      <img style=""height:40px; width:150px; justify-content: center;"" src=""#asd#dsa#""> 
+      <img style=""height:24px; width:24px; justify-content: center;"" src=""https://conferencecaptioning.com/wetech/images/x.png"">
+      <img style=""height: 43.3px; width:122px; justify-content: center;"" src=""https://conferencecaptioning.com/wetech/images/logo-wetech.png"">
       <h1 id=""caption-header"" class=""caption-header"" style=""font-size: 24px; justify-content: center;"">Event Live Captioning</h1>
     <!-- </div> -->
   </div>
@@ -594,23 +523,46 @@ function translate(language){{
 </html>
 ";
 
-		// Construct a link to access the HTML page
-		string linkToGeneratedPage = $"/api/HtmlGeneration/html/{request.Name}";
+        // Construct a link to access the HTML page
+        string linkToGeneratedPage = $"/api/HtmlGeneration/html/{request.Name}";
 
-		// Store the generated link in the database
-		var newLink = new User
+        // Store the generated link in the database
+        var newLink = new User
+        {
+            Name = request.Name,
+            GeneratedHTML = htmlContent,
+            Email = request.Email,
+            ImageURL = request.ImageURL,
+            ViewersCount = 0
+        };
+
+        _context.User.Add(newLink);
+        _context.SaveChanges();
+
+        // Return the link in the API response
+        return Ok(new { link = linkToGeneratedPage });
+    }
+
+	[HttpPatch]
+	[Route("{Name}")]
+	public IActionResult PatchProduct(string Name, [FromBody] HtmlGenerationRequest updatedUser)
+	{
+		var existingUser = _context.User.FirstOrDefault(p => p.Name == Name);
+
+		if (existingUser == null)
 		{
-			Name = request.Name,
-			GeneratedHTML = htmlContent,
-			Email = request.Email,
-			ImageURL = request.ImageURL,
-			ViewersCount = 0
-		};
+			return NotFound(); // Return a 404 Not Found response if the product doesn't exist.
+		}
 
-		_context.User.Add(newLink);
-		_context.SaveChanges();
+        // Update the existing product with the data from the request.
+        if(updatedUser.Name != "string" && updatedUser.Name != "")
+			existingUser.Name = updatedUser.Name;
+		if (updatedUser.Email != "string" && updatedUser.Email!= "")
+			existingUser.Email = updatedUser.Email;
+		if (updatedUser.ImageURL != "string" && updatedUser.ImageURL!= "")
+			existingUser.ImageURL = updatedUser.ImageURL;
+        _context.SaveChanges();
 
-		// Return the link in the API response
-		return Ok(new { link = linkToGeneratedPage });
+		return Ok(existingUser); // Return the updated product.
 	}
 }

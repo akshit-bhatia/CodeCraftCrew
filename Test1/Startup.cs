@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore.SqlServer;
+﻿using Microsoft.EntityFrameworkCore;
 
 using Test1.Data;
 using Microsoft.OpenApi.Models;
 using Test1.Interface;
 using Test1.Email;
+using Hangfire;
 
 namespace Test1
 {
@@ -36,12 +31,19 @@ namespace Test1
 			});
 
 			services.AddTransient<IEmailSender, EmailSender>();
+
+			//services.AddHangfire(configuration => configuration.UseSqlServerStorage("Hangfire"));
+			//services.AddHangfireServer();
+
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(WebApplication app, IWebHostEnvironment env)
 		{
 			// Other configurations
+
+			//app.UseHangfireDashboard();
+			//app.UseHangfireServer();
 
 			app.UseRouting();
 

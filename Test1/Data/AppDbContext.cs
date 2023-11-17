@@ -8,4 +8,5 @@ public class AppDbContext : DbContext
 	}
 
 	public DbSet<User> User { get; set; }
+	public DbSet<EmailLog> EmailLog { get; set; }
 }

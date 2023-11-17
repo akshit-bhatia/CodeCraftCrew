@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
 using Test1;
 
 var builder = WebApplication.CreateBuilder(args);
