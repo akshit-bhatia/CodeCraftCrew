@@ -8,7 +8,7 @@ public class EmailSender : IEmailSender
 	public Task SendEmailAsync(string email, string subject, string message)
 	{
 		var senderId = "codecraftcrew23@outlook.com";
-		var password = "Windsor@123";
+		var password = "Martindale@123";
 		var client = new SmtpClient("smtp.office365.com", 587)
 		{
 			EnableSsl = true,

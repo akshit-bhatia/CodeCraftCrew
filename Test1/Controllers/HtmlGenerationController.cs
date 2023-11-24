@@ -1,84 +1,78 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Net;
 using Test1;
 using Test1.Data;
 using Test1.Interface;
 using Test1.Models;
+using Test1.Stream;
 
 [Route("api/[controller]")]
 [ApiController]
 public class HtmlGenerationController : ControllerBase
 {
 
-    private readonly AppDbContext _context;
-    private readonly IEmailSender _emailSender;
+	private readonly AppDbContext _context;
+	private readonly IEmailSender _emailSender;
+	private readonly IWebHostEnvironment _environment;
 
-    private Dictionary<string, string> htmlContentDictionary = new Dictionary<string, string>();
+	private Dictionary<string, string> htmlContentDictionary = new Dictionary<string, string>();
 
-    public HtmlGenerationController(AppDbContext context, IEmailSender emailSender)
-    {
-        _context = context;
-        _emailSender = emailSender;
-        ScheduledJobs sj = new ScheduledJobs(context, emailSender);
-        sj.Scheduler();
-    }
+	public HtmlGenerationController(AppDbContext context, IEmailSender emailSender, IWebHostEnvironment environment)
+	{
+		_context = context;
+		_emailSender = emailSender;
+		_environment = environment;  // Assign the injected environment
+		ScheduledJobs sj = new ScheduledJobs(context, emailSender);
+		sj.Scheduler();
+	}
 
-    [HttpGet("html/{name}")]
-    public async Task<IActionResult> GetHtmlAsync(string name)
-    {
-        // Check if the provided uniqueId (name) exists in the User table
-        var user = _context.User.FirstOrDefault(u => u.Name == name);
+	[HttpGet("html/{name}")]
+	public async Task<IActionResult> GetHtmlAsync(string name)
+	{    // Check if the provided uniqueId (name) exists in the User table
+		var user = _context.User.FirstOrDefault(u => u.Name == name);
 
-        if (user == null)
-        {
-            // User not found in the database, return an error HTML page
+		if (user == null)
+		{
+			// User not found in the database, return an error HTML page
+			return BadRequest("Event not found in our database.!!!");
+		}
 
-            return BadRequest("Event not found in our database.!!!");
-        }
+		// Updating the viewers count by 1
+		if (user.ViewersCount == null)
+			user.ViewersCount = 1;
+		else
+			user.ViewersCount = user.ViewersCount + 1;
 
-        // Updating the viewers count by 1
-        if (user.ViewersCount == null)
-            user.ViewersCount = 1;
-        else
-            user.ViewersCount = user.ViewersCount + 1;
+		// saving changes to db
+		_context.SaveChanges();
 
-        // saving changes to db
-        _context.SaveChanges();
-
-        // User found in the database, fetch the generatedHtml data
-        string generatedHtml = user.GeneratedHTML.Replace("#asd#dsa#", user.ImageURL);
-
-		//var msg = "Your view count for " + user.Name + " is " + user.ViewersCount + ". " + System.Environment.NewLine + System.Environment.NewLine + "CodeCraftCrew";
-
-		// email test
-		//await _emailSender.SendEmailAsync(user.Email, "View Count", msg);
-
-		// Return the fetched HTML content in the API response
-		return Content(generatedHtml, "text/html");
-    }
+		// Redirect to the desired URL
+		var redirectUrl = $"/{name}/index.html";  // Adjust the path as needed
+		return Redirect(redirectUrl);
+	}
 
 
-    [HttpPost]
-    public IActionResult GenerateHtml([FromBody] HtmlGenerationRequest request)
-    {
+	[HttpPost]
+	public IActionResult GenerateHtml([FromBody] HtmlGenerationRequest request)
+	{
 
-        // Generate a unique identifier for the HTML page (e.g., a random string or a unique ID)
-        //string uniqueId = Guid.NewGuid().ToString();
+		// Generate a unique identifier for the HTML page (e.g., a random string or a unique ID)
+		//string uniqueId = Guid.NewGuid().ToString();
 
-        // Check if the provided uniqueId exists in the database
-        var link = _context.User.FirstOrDefault(l => l.Name == request.Name);
+		// Check if the provided uniqueId exists in the database
+		var link = _context.User.FirstOrDefault(l => l.Name == request.Name);
 
-        if (link != null)
-        {
+		if (link != null)
+		{
 			// If the uniqueId already exists, return an error indicating it's a duplicate
 			string errorMessage = "Event name already Exists!!";
-            return BadRequest(errorMessage);
-        }
+			return BadRequest(errorMessage);
+		}
 
+		StreamCreation sc = new StreamCreation();
+		_ = Task.Run(() => sc.NewStreamCreation(request.Name, request.ImageURL));
 
-
-        // Generate HTML content dynamically based on the input data
-        string htmlContent = $@"<!DOCTYPE html>
+		// Generate HTML content dynamically based on the input data
+		string htmlContent = $@"<!DOCTYPE html>
 <html lang=""en"" >
 <head>
   <meta charset=""utf-8"">
@@ -523,25 +517,25 @@ function translate(language){{
 </html>
 ";
 
-        // Construct a link to access the HTML page
-        string linkToGeneratedPage = $"/api/HtmlGeneration/html/{request.Name}";
+		// Construct a link to access the HTML page
+		string linkToGeneratedPage = $"/api/HtmlGeneration/html/{request.Name}";
 
-        // Store the generated link in the database
-        var newLink = new User
-        {
-            Name = request.Name,
-            GeneratedHTML = htmlContent,
-            Email = request.Email,
-            ImageURL = request.ImageURL,
-            ViewersCount = 0
-        };
+		// Store the generated link in the database
+		var newLink = new User
+		{
+			Name = request.Name,
+			GeneratedHTML = htmlContent,
+			Email = request.Email,
+			ImageURL = request.ImageURL,
+			ViewersCount = 0
+		};
 
-        _context.User.Add(newLink);
-        _context.SaveChanges();
+		_context.User.Add(newLink);
+		_context.SaveChanges();
 
-        // Return the link in the API response
-        return Ok(new { link = linkToGeneratedPage });
-    }
+		// Return the link in the API response
+		return Ok(new { link = linkToGeneratedPage });
+	}
 
 	[HttpPatch]
 	[Route("{Name}")]
@@ -554,15 +548,19 @@ function translate(language){{
 			return NotFound(); // Return a 404 Not Found response if the product doesn't exist.
 		}
 
-        // Update the existing product with the data from the request.
-        if(updatedUser.Name != "string" && updatedUser.Name != "")
-			existingUser.Name = updatedUser.Name;
-		if (updatedUser.Email != "string" && updatedUser.Email!= "")
-			existingUser.Email = updatedUser.Email;
-		if (updatedUser.ImageURL != "string" && updatedUser.ImageURL!= "")
-			existingUser.ImageURL = updatedUser.ImageURL;
-        _context.SaveChanges();
+		StreamCreation sc = new StreamCreation();
+		_ = Task.Run(() => sc.StreamUpdate(Name, existingUser.ImageURL, updatedUser.Name, updatedUser.ImageURL));
 
-		return Ok(existingUser); // Return the updated product.
+		// Update the existing product with the data from the request.
+		if (updatedUser.Name != "string" && updatedUser.Name != "")
+			existingUser.Name = updatedUser.Name;
+		if (updatedUser.Email != "string" && updatedUser.Email != "")
+			existingUser.Email = updatedUser.Email;
+		if (updatedUser.ImageURL != "string" && updatedUser.ImageURL != "")
+			existingUser.ImageURL = updatedUser.ImageURL;
+		_context.SaveChanges();
+
+		//return Content($"/{existingUser.Name}/index.html"); // Return the updated url
+		return Content("https://localhost:7073/api/HtmlGeneration/html/" + existingUser.Name);
 	}
 }

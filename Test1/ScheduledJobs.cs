@@ -19,6 +19,9 @@ namespace Test1
 			// Get all Names from DB
 			var user_Names = _context.User.Select(u => u.Name).ToList();
 
+			// Counter for emails sent
+			int emailsSentCount = 0;
+
 			// Calculate view count 
 			foreach (var name in user_Names)
 			{
@@ -36,8 +39,22 @@ namespace Test1
 
 					// Send the email
 					await _emailSender.SendEmailAsync(data.Email, "End of Day Report", emailBody);
+
+					// Increment the count of emails sent
+					emailsSentCount++;
 				}
 			}
+
+			// Log the count of emails sent for the day into the database
+			var logEntry = new EmailLog
+			{
+				LogDate = DateTime.UtcNow, // Use UTC time for consistency
+				EmailsSentCount = emailsSentCount
+			};
+
+			_context.EmailLog.Add(logEntry);
+			await _context.SaveChangesAsync();
+
 		}
 
 		public void Scheduler()

@@ -455,3 +455,6 @@ C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internshi
 C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\obj\Debug\net6.0\Test1.csproj.CopyComplete
 C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\obj\Debug\net6.0\Test1.genruntimeconfig.cache
 C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\obj\Debug\net6.0\ref\Test1.dll
+C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\bin\Debug\net6.0\System.Web.Cors.dll
+C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\bin\Debug\net6.0\Template\eng.json
+C:\Users\Akshit\Desktop\Windsor\OneDrive - University of Windsor\Sem 3\Internship Project\Project\Backup\Test1\4\Test1\Test1\bin\Debug\net6.0\Template\french.json

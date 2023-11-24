@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Test1.Interface;
 using Test1.Email;
 using Hangfire;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Test1
 {
@@ -19,6 +20,9 @@ namespace Test1
 		// This method gets called by the runtime. Use this method to add serices to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddCors();
+			services.AddMvc();
+
 			//services.AddDbContext...
 			services.AddControllers();
 			//	services.AddDbContext<AppDbContext>(options =>
@@ -45,8 +49,14 @@ namespace Test1
 			//app.UseHangfireDashboard();
 			//app.UseHangfireServer();
 
+			app.UseCors(
+				options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed((host) => true)
+			);
+			//app.UseMvc();
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
 			app.UseRouting();
-
+			app.UseAuthorization();
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllers();

@@ -1,4 +1,8 @@
 using Test1;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 var startup = new Startup(builder.Configuration); // My custom startup class
@@ -6,7 +10,6 @@ var startup = new Startup(builder.Configuration); // My custom startup class
 startup.ConfigureServices(builder.Services); // Add services to the container.
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -24,9 +27,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles(); // Enable access to the wwwroot folder for static files
 app.UseAuthorization();
+app.UseRouting(); // Add this line to enable routing before mapping controllers
 
 app.MapControllers();
-
 app.Run();

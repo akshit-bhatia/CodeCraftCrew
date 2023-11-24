@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/S1IWOTMb2bRvfhrHs7gvUPkPpuet0oQhFCl5ZMQ/WnXa/BVXPEA4N+jg8ecuUoQeAWhU0TVP2bIB8lR4zOnxw==",
+  "dgSpecHash": "tdK3AyffC6ZN8Uc7jQLvKf5Fl2JW3+BBwQWiyS4qWE1HP7dgI4B5ZgQ1Grut9etHBuQEeehYhWdNppViSra6NQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\Akshit\\Desktop\\Windsor\\OneDrive - University of Windsor\\Sem 3\\Internship Project\\Project\\Backup\\Test1\\4\\Test1\\Test1\\Test1.csproj",
   "expectedPackageFiles": [
@@ -14,6 +14,7 @@
     "C:\\Users\\Akshit\\.nuget\\packages\\hangfire.sqlserver\\1.8.6\\hangfire.sqlserver.1.8.6.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\hangfire.storage.sqlite\\0.3.4\\hangfire.storage.sqlite.0.3.4.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.aspnet.cors\\5.3.0\\microsoft.aspnet.cors.5.3.0.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.aspnetcore.antiforgery\\2.2.0\\microsoft.aspnetcore.antiforgery.2.2.0.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.aspnetcore.authentication.core\\2.2.0\\microsoft.aspnetcore.authentication.core.2.2.0.nupkg.sha512",
@@ -238,5 +239,16 @@
     "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.25\\microsoft.aspnetcore.app.ref.6.0.25.nupkg.sha512",
     "C:\\Users\\Akshit\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.25\\microsoft.netcore.app.host.win-x64.6.0.25.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Microsoft.AspNet.Cors 5.3.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net6.0'. This package may not be fully compatible with your project.",
+      "libraryId": "Microsoft.AspNet.Cors",
+      "targetGraphs": [
+        "net6.0"
+      ]
+    }
+  ]
 }
